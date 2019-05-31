@@ -1,12 +1,23 @@
 {
   "name": "mute-prompt",
   "version": "1.0.0",
-  "description": "",
+  "description": "A utility used to generate command line prompts that have the keyboard input muted.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bnielsen1965/node-mute-prompt.git"
+  },
+  "keywords": [
+    "node",
+    "stdout",
+    "stdin",
+    "prompt",
+    "mute",
+    "silent"
+  ],
+  "author": "Bryan Nielsen <bnielsen1965@gmail.com> (https://github.com/bnielsen1965)",
+  "license": "MIT",
 }

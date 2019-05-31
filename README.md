@@ -14,6 +14,40 @@ to generate a command line prompt question that can be muted to hide user input.
 
 # usage
 
+The module is used in terminal applications and imports as a class which requires
+creating an instance with the new command. There is a single primary method provided
+by the instance that is used to prompt the user with a question.
+
+
+## question (prompt, [muted])
+
+The question method returns a promise that resolves with the user input. The question
+method accepts two parameters, a string for the question prompt and an optional boolean
+to enable the muted output mode.
+
+When calling the question method without a muted parameter the muted value defaults to
+false and user input will be visible as they enter their answer at the prompt.
+```javascript
+// ask question without muted output
+prompt.question("Username: ")
+  .then((answer) => {
+    console.log('User answered ' + answer);
+  })
+```
+
+When asking a user question with a sensitive answer the muted parameter should be
+set to true and the user input will not be visible as they enter their answer.
+```javascript
+// ask question with muted output to protect answer
+prompt.question("Password: ", true)
+  .then((answer) => {
+    console.log('User answered ' + answer);
+  })
+```
+
+
+## example
+
 ```javascript
 const MutePrompt = require('mute-prompt');
 let prompt = new MutePrompt();
@@ -24,18 +58,12 @@ let username, password;
 prompt.question("Username: ")
   .then((answer) => {
     username = answer;
-    return prompt.question("(muted) Question 2? ", true);
+    // ask for password with output muted
+    return prompt.question("Password: ", true);
   })
   .then((answer) => {
-    console.log('Answer 2:', answer);
-    return prompt.question("(unmuted) Question 3? ");
-  })
-  .then((answer) => {
-    console.log('Answer 3:', answer);
-    return prompt.question("(muted) Question 4? ", true);
-  })
-  .then((answer) => {
-    console.log('Answer 4:', answer);
+    password = answer;
+    console.log('Username/Password: ', username + '/' + password);
     process.exit(0);
   })
   .catch((error) => {

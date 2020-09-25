@@ -11,24 +11,18 @@ class MutePrompt {
   }
 
   // prompt with a question
-  question (message, muted) {
-    let self = this;
-    return new Promise((resolve, reject) => {
-      if (muted) {
-        this.stdout.write(message); // show prompt message before muting output
-        this.muteStdout();
-      }
-      else {
-        this.unmuteStdout();
-      }
-      this.stdin.question(message, response => {
-        if (muted) {
-          this.unmuteStdout();
-          this.stdout.write('\n'); // add the muted new line
-        }
-        resolve(response);
-      });
-    });
+  async question (query, muted) {
+    if (muted) {
+      // show query before muting
+      this.stdout.write(query);
+      this.muteStdout();
+    }
+    let response = await new Promise((resolve, reject) => this.stdin.question(query, response => resolve(response)));
+    if (muted) {
+      this.unmuteStdout();
+      this.stdout.write('\n'); // add the muted new line
+    }
+    return response;
   }
 
   // create the stdin interface for the prompt
@@ -44,9 +38,7 @@ class MutePrompt {
   createStdoutInterface () {
     return new Writable({
       write: function (chunk, encoding, callback) {
-        if (!this.muted) {
-          process.stdout.write(chunk, encoding);
-        }
+        if (!this.muted) process.stdout.write(chunk, encoding);
         callback();
       }
     });

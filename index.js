@@ -54,6 +54,12 @@ class MutePrompt {
     this.stdout.muted = false;
   }
 
+  close () {
+    this.stdin.close();
+    this.stdin = null;
+    this.stdout.end();
+    this.stdout = null;
+  }
 }
 
 module.exports = MutePrompt;

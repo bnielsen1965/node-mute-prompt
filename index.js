@@ -4,29 +4,81 @@ const ReadLine = require('readline');
 const Writable = require('stream').Writable;
 
 class MutePrompt {
+
+  //////////////////////////////////////////
+  // instance methods for stateful prompt //
+  //////////////////////////////////////////
+
+  // create stateful instance
   constructor () {
-    this.stdout = this.createStdoutInterface();
-    this.unmuteStdout();
-    this.stdin = this.createStdinInterface(this.stdout);
+    let { stdout, stdin } = MutePrompt.createInterfaces();
+    this.stdout = stdout;
+    this.stdin = stdin;
   }
 
-  // prompt with a question
+  // destroy stateful instance
+  destroy () {
+    MutePrompt.stopInterfaces(this.stdin, this.stdout);
+    delete this.stdin;
+    delete this.stdout;
+  }
+
+
+
+  //////////////////////////
+  // query prompt methods //
+  //////////////////////////
+
+  // stateless prompt
+  static async prompt (query, muted) {
+    let { stdout, stdin } = MutePrompt.createInterfaces();
+    let response = await MutePrompt.execQuestion(query, stdin, stdout, muted);
+    MutePrompt.stopInterfaces(stdin, stdout);
+    return response;
+  }
+
+  // stateful prompt
   async question (query, muted) {
+    return await MutePrompt.execQuestion(query, this.stdin, this.stdout, muted);
+  }
+
+  // execute prompt with question
+  static async execQuestion (query, stdin, stdout, muted) {
     if (muted) {
       // show query before muting
-      this.stdout.write(query);
-      this.muteStdout();
+      stdout.write(query);
+      MutePrompt.muteStdout(stdout);
     }
-    let response = await new Promise((resolve, reject) => this.stdin.question(query, response => resolve(response)));
+    let response = await new Promise((resolve, reject) => stdin.question(query, response => resolve(response)));
     if (muted) {
-      this.unmuteStdout();
-      this.stdout.write('\n'); // add the muted new line
+      MutePrompt.unmuteStdout(stdout);
+      stdout.write('\n'); // add the muted new line
     }
     return response;
   }
 
+
+
+  /////////////////////////////////
+  // character interface methods //
+  /////////////////////////////////
+
+  // create interfaces
+  static createInterfaces () {
+    let stdout = MutePrompt.createStdoutInterface();
+    MutePrompt.unmuteStdout(stdout);
+    let stdin = MutePrompt.createStdinInterface(stdout);
+    return { stdout, stdin };
+  }
+
+  // clean up stateful and stateless interfaces
+  static stopInterfaces (stdin, stdout) {
+    stdin.close();
+    stdout.end();
+  }
+
   // create the stdin interface for the prompt
-  createStdinInterface (stdout) {
+  static createStdinInterface (stdout) {
     return ReadLine.createInterface({
       input: process.stdin,
       output: stdout,
@@ -35,23 +87,23 @@ class MutePrompt {
   }
 
   // create the stdout interface for the prompt
-  createStdoutInterface () {
+  static createStdoutInterface () {
     return new Writable({
       write: function (chunk, encoding, callback) {
-        if (!this.muted) process.stdout.write(chunk, encoding);
+        if (!this.muted) process.stderr.write(chunk, encoding);
         callback();
       }
     });
   }
 
   // mute stdout output
-  muteStdout () {
-    this.stdout.muted = true;
+  static muteStdout (stdout) {
+    stdout.muted = true;
   }
 
   // unmute stdout output
-  unmuteStdout () {
-    this.stdout.muted = false;
+  static unmuteStdout (stdout) {
+    stdout.muted = false;
   }
 
 }

@@ -33,12 +33,14 @@ for each prompt. A stateless prompt is an easier and cleaner application method
 when an application only makes a handful of one time queries.
 
 
-## question (message, [muted])
+## question (message, [muted], [preset])
 
 The question method is used as a stateful prompt and returns a promise that
-resolves with the user input. The question method accepts two parameters, a
-string for the question prompt and an optional boolean to enable the muted
-output mode.
+resolves with the user input. The question method accepts a message string that 
+will be presented to the user as a prompt. The second parameter is an optional 
+boolean used to enable a muted input so the user's input will not be displayed 
+on the screen. And the third parameter is an optional preset value that will be 
+presented at the prompt for the user to accept or overwrite.
 
 When calling the question method without a muted parameter the muted value defaults
 to false and user input will be visible as they enter their answer at the prompt.
@@ -58,6 +60,16 @@ prompts.question("Password: ", true)
   .then((answer) => {
     console.log('User answered ' + answer);
   })
+```
+
+And when a preset answer is provided the user's prompt will be populated with 
+the preset where they can hit enter to accept or overwrite with a new answer.
+```javascript
+// ask question with a preset answer
+prompts.question("Color: ", null, "BLUE")
+  .then((answer) => {
+    console.log('User answered ' + answer);
+  });
 ```
 
 
@@ -88,15 +100,17 @@ prompts.question("Username: ")
 ```
 
 
-## prompt (message, [muted])
+## prompt (message, [muted], [preset])
 
 Thanks [@zypA13510](https://github.com/zypA13510) for the suggestion and input 
 for stateless operation.
 
 The prompt method is a stateless prompt and also returns a promise that
-resolves with the user input. The prompt method accepts two parameters, a
-string for the question prompt and an optional boolean to enable the muted
-output mode.
+resolves with the user input. The prompt method accepts a message string that 
+will be presented to the user as a prompt. The second parameter is an optional 
+boolean used to enable a muted input so the user's input will not be displayed 
+on the screen. And the third parameter is an optional preset value that will be 
+presented at the prompt for the user to accept or overwrite.
 
 When calling the question method without a muted parameter the muted value defaults
 to false and user input will be visible as they enter their answer at the prompt.
@@ -116,6 +130,16 @@ prompt("Password: ", true)
   .then((answer) => {
     console.log('User answered ' + answer);
   })
+```
+
+And when a preset answer is provided the user's prompt will be populated with 
+the preset where they can hit enter to accept or overwrite with a new answer.
+```javascript
+// ask question with a preset answer
+prompt("Color: ", null, "BLUE")
+  .then((answer) => {
+    console.log('User answered ' + answer);
+  });
 ```
 
 

@@ -28,11 +28,12 @@ askQuestions(muteprompt)
 
 
 async function askQuestions(qprompt) {
-  console.log('Four questions with alternating muted prompt...');
+  console.log('Four questions with alternating muted prompt, and one preset answer...');
   return [
     await qprompt.question("(unmuted) Question 1? "),
     await qprompt.question("(muted)   Question 2? ", true),
     await qprompt.question("(unmuted) Question 3? "),
-    await qprompt.question("(muted)   Question 4? ", true)
+    await qprompt.question("(muted)   Question 4? ", true),
+    await qprompt.question("(preset)  Question 5? ", undefined, "preset answer")
   ];
 }

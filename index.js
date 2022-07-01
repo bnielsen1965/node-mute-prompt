@@ -30,26 +30,29 @@ class MutePrompt {
   //////////////////////////
 
   // stateless prompt
-  static async prompt (query, muted) {
+  static async prompt (query, muted, preset) {
     let { stdout, stdin } = MutePrompt.createInterfaces();
-    let response = await MutePrompt.execQuestion(query, stdin, stdout, muted);
+    let response = await MutePrompt.execQuestion(query, stdin, stdout, muted, preset);
     MutePrompt.stopInterfaces(stdin, stdout);
     return response;
   }
 
   // stateful prompt
-  async question (query, muted) {
-    return await MutePrompt.execQuestion(query, this.stdin, this.stdout, muted);
+  async question (query, muted, preset) {
+    return await MutePrompt.execQuestion(query, this.stdin, this.stdout, muted, preset);
   }
 
   // execute prompt with question
-  static async execQuestion (query, stdin, stdout, muted) {
+  static async execQuestion (query, stdin, stdout, muted, preset) {
     if (muted) {
       // show query before muting
       stdout.write(query);
       MutePrompt.muteStdout(stdout);
     }
-    let response = await new Promise((resolve, reject) => stdin.question(query, response => resolve(response)));
+    let response = await new Promise((resolve, reject) => {
+      stdin.question(query, response => resolve(response));
+      if (preset) stdin.write(preset);
+    });
     if (muted) {
       MutePrompt.unmuteStdout(stdout);
       stdout.write('\n'); // add the muted new line

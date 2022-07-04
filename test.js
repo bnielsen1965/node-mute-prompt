@@ -16,7 +16,7 @@ askQuestions(muteprompt)
   .then(answer => {
     console.log(`Stateless answer 1: ${answer}`);
     // stateless muted prompt
-    return prompt("(unmuted) Stateless Question 2? ", true);
+    return prompt("(unmuted) Stateless Question 2? ", { muted: true });
   })
   .then(answer => {
     console.log(`Stateless answer 2: ${answer}`);
@@ -31,9 +31,9 @@ async function askQuestions(qprompt) {
   console.log('Four questions with alternating muted prompt, and one preset answer...');
   return [
     await qprompt.question("(unmuted) Question 1? "),
-    await qprompt.question("(muted)   Question 2? ", true),
+    await qprompt.question("(muted)   Question 2? ", { muted: true }),
     await qprompt.question("(unmuted) Question 3? "),
-    await qprompt.question("(muted)   Question 4? ", true),
-    await qprompt.question("(preset)  Question 5? ", undefined, "preset answer")
+    await qprompt.question("(muted)   Question 4? ", { muted: true }),
+    await qprompt.question("(preset)  Question 5? ", { preset: "preset answer" })
   ];
 }

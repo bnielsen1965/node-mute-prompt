@@ -10,8 +10,8 @@ class MutePrompt {
   //////////////////////////////////////////
 
   // create stateful instance
-  constructor () {
-    let { stdout, stdin } = MutePrompt.createInterfaces();
+  constructor (settings) {
+    let { stdout, stdin } = MutePrompt.createInterfaces(settings);
     this.stdout = stdout;
     this.stdin = stdin;
   }
@@ -30,30 +30,40 @@ class MutePrompt {
   //////////////////////////
 
   // stateless prompt
-  static async prompt (query, muted, preset) {
-    let { stdout, stdin } = MutePrompt.createInterfaces();
-    let response = await MutePrompt.execQuestion(query, stdin, stdout, muted, preset);
+  static async prompt (query, settings) {
+    let { stdout, stdin } = MutePrompt.createInterfaces(settings);
+    let response = await MutePrompt.execQuestion(query, stdin, stdout, settings);
     MutePrompt.stopInterfaces(stdin, stdout);
     return response;
   }
 
   // stateful prompt
-  async question (query, muted, preset) {
-    return await MutePrompt.execQuestion(query, this.stdin, this.stdout, muted, preset);
+  async question (query, settings = {}) {
+    return await MutePrompt.execQuestion(query, this.stdin, this.stdout, settings);
+  }
+
+  // disable stateful completer
+  disableCompleter () {
+    this.stdin.isCompletionEnabled = false;
+  }
+
+  // enable stateful completer
+  enableCompleter () {
+    this.stdin.isCompletionEnabled = true;
   }
 
   // execute prompt with question
-  static async execQuestion (query, stdin, stdout, muted, preset) {
-    if (muted) {
+  static async execQuestion (query, stdin, stdout, settings = {}) {
+    if (settings.muted) {
       // show query before muting
       stdout.write(query);
       MutePrompt.muteStdout(stdout);
     }
     let response = await new Promise((resolve, reject) => {
       stdin.question(query, response => resolve(response));
-      if (preset) stdin.write(preset);
+      if (settings.preset) stdin.write(settings.preset);
     });
-    if (muted) {
+    if (settings.muted) {
       MutePrompt.unmuteStdout(stdout);
       stdout.write('\n'); // add the muted new line
     }
@@ -67,10 +77,10 @@ class MutePrompt {
   /////////////////////////////////
 
   // create interfaces
-  static createInterfaces () {
+  static createInterfaces (settings = {}) {
     let stdout = MutePrompt.createStdoutInterface();
     MutePrompt.unmuteStdout(stdout);
-    let stdin = MutePrompt.createStdinInterface(stdout);
+    let stdin = MutePrompt.createStdinInterface(stdout, settings);
     return { stdout, stdin };
   }
 
@@ -81,12 +91,15 @@ class MutePrompt {
   }
 
   // create the stdin interface for the prompt
-  static createStdinInterface (stdout) {
-    return ReadLine.createInterface({
+  static createStdinInterface (stdout, settings) {
+    let options = {
       input: process.stdin,
       output: stdout,
       terminal: true
-    });
+    };
+    if (settings.completer) options.completer = settings.completer;
+    else if (settings.completions) options.completer = MutePrompt.createCompleter(settings);
+    return ReadLine.createInterface(options);
   }
 
   // create the stdout interface for the prompt
@@ -97,6 +110,28 @@ class MutePrompt {
         callback();
       }
     });
+  }
+
+  // create completer function for use in readline stdin interface
+  static createCompleter (settings) {
+    return (line) => {
+      // check for completion hits that start with current line content
+      let hits = settings.completions.filter((c) => c.startsWith(line));
+      if (settings.completeEndings) {
+        let words = line.split(' ');
+        if (words.length > 1) {
+          // check last word in line for match to completions
+          let last = words.pop();
+          let pattern = new RegExp(`^${last}`);
+          settings.completions.map(c => {
+            pattern.lastIndex = 0;
+            if (pattern.test(c)) hits.push(`${words.join(' ')} ${c}`);
+          });
+        }
+      }
+      // Show all completions if none found
+      return [hits.length ? hits : settings.completions, line];
+    }
   }
 
   // mute stdout output

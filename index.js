@@ -61,7 +61,7 @@ class MutePrompt {
     }
     let response = await new Promise((resolve, reject) => {
       stdin.question(query, response => resolve(response));
-      if (settings.preset) stdin.write(settings.preset);
+      if (settings.preset !== undefined) stdin.write(`${settings.preset}`);
     });
     if (settings.muted) {
       MutePrompt.unmuteStdout(stdout);
